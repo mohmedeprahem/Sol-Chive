@@ -1,6 +1,5 @@
 import express from 'express';
-
-
+import { pool } from './config/db';
 
 // init express
 const app: express.Application = express();

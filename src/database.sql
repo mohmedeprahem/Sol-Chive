@@ -1,5 +1,34 @@
-CREATE TABLE user(
+DROP TABLE IF EXISTS users;
+
+DROP TABLE IF EXISTS solutions;
+
+DROP TABLE IF EXISTS tags;
+
+DROP TABLE IF EXISTS tag_solution;
+
+CREATE TABLE users(
     user_id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     name VARCHAR(50) NOT NULL,
     picture VARCHAR(100)
+);
+
+CREATE TABLE solutions(
+    solution_id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    title VARCHAR(50) NOT NULL,
+    link VARCHAR(100) NOT NULL,
+    source VARCHAR(50) NOT NULL,
+    my_soluction TEXT NOT NULL,
+    perfect_soluction TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE tags(
+    tag_id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    title VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE tag_solution(
+    tag_id INT REFERENCES tags(tag_id) ON DELETE CASCADE,
+    solution_id INTEGER REFERENCES solutions(solution_id) ON DELETE CASCADE
 );
