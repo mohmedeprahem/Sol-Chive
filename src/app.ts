@@ -1,15 +1,20 @@
+// packages requirement
 import express from 'express';
-import { pool } from './config/db';
+
+// routes files
+import solutionsRoutes from './routes/solutions'
 
 // init express
 const app: express.Application = express();
 
 // init dotenv
-require('dotenv').config({path:`${__dirname}/config/.env`})
+require('dotenv').config({path: `${__dirname}/config/.env`});
 
 // read body => req.body
 app.use(express.json());
 
+// routes api's
+app.use(solutionsRoutes);
 
 
 // connect to server

@@ -8,8 +8,10 @@ DROP TABLE IF EXISTS tag_solution;
 
 CREATE TABLE users(
     user_id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    email VARCHAR(320) NOT NULL,
     name VARCHAR(50) NOT NULL,
-    picture VARCHAR(100)
+    picture VARCHAR(100),
+    UNIQUE(email)
 );
 
 CREATE TABLE solutions(
@@ -17,10 +19,10 @@ CREATE TABLE solutions(
     title VARCHAR(50) NOT NULL,
     link VARCHAR(100) NOT NULL,
     source VARCHAR(50) NOT NULL,
-    my_soluction TEXT NOT NULL,
-    perfect_soluction TEXT,
+    my_solution TEXT NOT NULL,
+    perfect_solution TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
-    user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE tags(
@@ -29,6 +31,6 @@ CREATE TABLE tags(
 );
 
 CREATE TABLE tag_solution(
-    tag_id INT REFERENCES tags(tag_id) ON DELETE CASCADE,
-    solution_id INTEGER REFERENCES solutions(solution_id) ON DELETE CASCADE
+    tag_id INT NOT NULL REFERENCES tags(tag_id) ON DELETE CASCADE,
+    solution_id INTEGER NOT NULL REFERENCES solutions(solution_id) ON DELETE CASCADE
 );
