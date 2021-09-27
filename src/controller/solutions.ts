@@ -250,7 +250,7 @@ export const getAllSolutions = async (req: Request, res: Response, next: NextFun
   const cliant = await pool.connect();
 
   // get all solutions
-  const result = await cliant.query("SELECT s.solution_id AS _id, json_build_object('title', s.title, 'tags', ARRAY_AGG(t.title), 'link', s.link, 'source', s.source) problem, s.my_solution AS mySolution,  LEFT(perfect_solution, 1) perfectSolution, s.created_at AS createdAt FROM solutions s LEFT JOIN tag_solution ts ON s.user_id = $1 AND s.solution_id = ts.solution_id LEFT JOIN tags t ON ts.tag_id = t.tag_id GROUP BY s.solution_id", 
+  const result = await cliant.query("SELECT s.solution_id AS _id, json_build_object('title', s.title, 'tags', ARRAY_AGG(t.title), 'link', s.link, 'source', s.source) problem, s.my_solution AS mySolution, s.created_at AS createdAt, json_build_object('isExist', CASE WHEN (perfect_solution IS NULL OR perfect_solution = '') THEN false ELSE true END) perfectSolution FROM solutions s LEFT JOIN tag_solution ts ON s.user_id = $1 AND s.solution_id = ts.solution_id LEFT JOIN tags t ON ts.tag_id = t.tag_id GROUP BY s.solution_id", 
   [user.id]);
   
   cliant.release()
