@@ -6,7 +6,8 @@ import {
     createNewSolution,
     getOneSolution,
     editOneSolution,
-    deleteOneSoluation
+    deleteOneSolution,
+    getAllSolutions
 } from '../controller/solutions';
 
 
@@ -29,5 +30,10 @@ router.put('/api/v1/solutions/:solutionId', editOneSolution)
 // @route: 'DELETE'  /api/v1/solutions/:solutionId
 // @disc: delete one solution
 // @access: private(logged in user)
-router.delete('/api/v1/solutions/:solutionId', deleteOneSoluation);
+router.delete('/api/v1/solutions/:solutionId', deleteOneSolution);
+
+// @route: 'GET'  /api/v1/solutions
+// @disc: list all solutions
+// @access: private(logged in user)
+router.get('/api/v1/solutions', getAllSolutions);
 export default router;

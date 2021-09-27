@@ -86,8 +86,6 @@ export const getOneSolution = async (req: Request, res: Response, next: NextFunc
 
     const cliant = await pool.connect();
 
-    // SELECT solutions.solution_id, solutions.title AS Stilte, tags.title AS Ttilte, link, source, my_solution, perfect_solution FROM solutions LEFT JOIN tag_solution ON solutions.solution_id = $1 AND solutions.solution_id = tag_solution.solution_id LEFT JOIN tags ON tag_solution.tag_id = tags.tag_id LIMIT 5
-
     // Get soluction from database
     const result = await cliant.query('SELECT solution_id, title, link, source, my_solution, perfect_solution, created_at FROM solutions WHERE solution_id = $1 LIMIT 1', [req.params.solutionId])
 
@@ -101,7 +99,7 @@ export const getOneSolution = async (req: Request, res: Response, next: NextFunc
     cliant.release()
 
     
-    // Shape data
+    // Shape data response
     let tag:string[] = []; 
 
     for(let i = 0; i < tags.rows.length; i++) {
@@ -217,7 +215,7 @@ export const editOneSolution = async (req: Request, res: Response, next: NextFun
 // @route: 'DELETE'  /api/v1/solutions/:solutionId
 // @disc: delete one solution
 // @access: private(logged in user)
-export const deleteOneSoluation = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteOneSolution = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // connect to database
     const cliant = await pool.connect();
@@ -239,4 +237,27 @@ export const deleteOneSoluation = async (req: Request, res: Response, next: Next
   } catch (error) {
     next(error);
   }
+};
+
+// @route: 'GET'  /api/v1/solutions
+// @disc: list all solutions
+// @access: private(logged in user)
+export const getAllSolutions = async (req: Request, res: Response, next: NextFunction) => {
+  const user = {
+    id: 1
+  };
+  // connect to database
+  const cliant = await pool.connect();
+
+  // get all solutions
+  const result = await cliant.query("SELECT s.solution_id AS _id, json_build_object('title', s.title, 'tags', ARRAY_AGG(t.title), 'link', s.link, 'source', s.source) problem, s.my_solution AS mySolution,  LEFT(perfect_solution, 1) perfectSolution, s.created_at AS createdAt FROM solutions s LEFT JOIN tag_solution ts ON s.user_id = $1 AND s.solution_id = ts.solution_id LEFT JOIN tags t ON ts.tag_id = t.tag_id GROUP BY s.solution_id", 
+  [user.id]);
+  
+  cliant.release()
+
+  // return successfuly response
+  return res.status(200).json({
+    success: true,
+    result: result.rows
+  })
 }
