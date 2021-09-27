@@ -5,7 +5,8 @@ const router = express.Router();
 import { 
     createNewSolution,
     getOneSolution,
-    editOneSolution 
+    editOneSolution,
+    deleteOneSoluation
 } from '../controller/solutions';
 
 
@@ -24,4 +25,9 @@ router.get('/api/v1/solutions/:solutionId', getOneSolution)
 // @disc: edit one solution
 // @access: private(logged in user)
 router.put('/api/v1/solutions/:solutionId', editOneSolution)
+
+// @route: 'DELETE'  /api/v1/solutions/:solutionId
+// @disc: delete one solution
+// @access: private(logged in user)
+router.delete('/api/v1/solutions/:solutionId', deleteOneSoluation);
 export default router;

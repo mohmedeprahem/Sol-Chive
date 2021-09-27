@@ -109,7 +109,7 @@ export const getOneSolution = async (req: Request, res: Response, next: NextFunc
       tag.push(tags.rows[i].title);
     }
 
-    // send solutionsolution_id
+    // Send successfuly response
     return res.status(200).json({
       "_id": result.rows[0].solution_id,
       "createdAt": result.rows[0].created_at,
@@ -149,8 +149,9 @@ export const editOneSolution = async (req: Request, res: Response, next: NextFun
     
     if (value.error) {
       throw new ErrorMessage(400, 'invalid data');
-    }
+    };
 
+    // connect to database
     const cliant = await pool.connect();
 
     // update problem and solutions
@@ -171,6 +172,7 @@ export const editOneSolution = async (req: Request, res: Response, next: NextFun
     // add new tags
     findTags(req.body.problem.tags, req.params.solutionId);
 
+    // Return successfuly response
     return res.status(200).json({
       success: true,
       message: "solution updated successfully"
@@ -209,5 +211,32 @@ export const editOneSolution = async (req: Request, res: Response, next: NextFun
   } catch (error) {
     console.log(error)
     next(error)
+  }
+};
+
+// @route: 'DELETE'  /api/v1/solutions/:solutionId
+// @disc: delete one solution
+// @access: private(logged in user)
+export const deleteOneSoluation = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // connect to database
+    const cliant = await pool.connect();
+
+    // delete solution
+    const result = await cliant.query('DELETE FROM solutions WHERE solution_id = $1', 
+    [req.params.solutionId]
+    );
+    
+    if (result.rowCount === 0) throw new ErrorMessage(400, 'invalid id')
+
+    cliant.release();
+
+    // return successfuly response
+    return res.status(200).json({
+      success: true,
+      message: "solution deleted successfully"
+    })
+  } catch (error) {
+    next(error);
   }
 }
