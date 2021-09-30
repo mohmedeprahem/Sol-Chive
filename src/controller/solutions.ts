@@ -1,8 +1,10 @@
-import { Console } from 'console';
 import express, {application, Request, Response, NextFunction} from 'express';
 import { pool } from '../config/db';
 import joiValSolution from '../models/solutions'
 import { ErrorMessage } from '../util/errorHandler';
+
+// util folder
+import { findCreateTags, createTag, connectTagAndSolution, findTag} from '../util/tags'
 
 // @route: 'POST'  /api/v1/solutions/add
 // @disc: add new solution
@@ -12,59 +14,34 @@ export const createNewSolution = async (req: Request, res: Response, next: NextF
       id: 1
   };
   try {  
-    // validate req.body
-    if (!req.body.problem) throw new ErrorMessage(400, 'invalid data');
+    // Validate req.body
+    const body = req.body;
+    if (!body.problem) throw new ErrorMessage(400, 'invalid data');
 
     const value = await joiValSolution.validate({
-      title : req.body.problem.title,
-      link: req.body.problem.link, 
-      source: req.body.problem.source, 
-      my_solution: req.body.mySolution
+      title : body.problem.title,
+      link: body.problem.link, 
+      source: body.problem.source, 
+      my_solution: body.mySolution
     });
 
+    // Throw error if req.body invalid
     if (value.error) {
       throw new ErrorMessage(400, 'invalid data');
     }
 
+        
+    // connect to database
     const cliant = await pool.connect();
 
     // Create new problem by push it to database
-    const result = await cliant.query('INSERT INTO solutions(title, link, source, my_solution, perfect_solution, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING solution_id', 
-    [req.body.problem.title, req.body.problem.link, req.body.problem.source, req.body.mySolution, req.body.perfectSolution, user.id]);
-    console.log(1)
-    findTags(req.body.problem.tags, result.rows[0].solution_id);
+    const solution = await cliant.query('INSERT INTO solutions(title, link, source, my_solution, perfect_solution, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING solution_id', 
+    [body.problem.title, body.problem.link, body.problem.source, body.mySolution, body.perfectSolution, user.id]);
+    
+    // Save tags of solution
+    await findCreateTags(body.problem.tags, solution.rows[0].solution_id, cliant);
 
-    // Find ids of tags
-    async function findTags(tags: string[], solution_id: number) {
-
-      for (let i = 0; i < tags.length; i++) {
-        // Find id of tag
-        const result = await cliant.query('SELECT tag_id FROM tags WHERE title = $1',
-        [tags[i]]);
-
-        let tagId;
-
-        // Create tag if not found
-        if (result.rows.length === 0) {
-            tagId = await createTag(tags[i]);
-        } else {
-            tagId = result.rows[0].tag_id
-        }
-
-        // Connect tag with problem
-        await cliant.query('INSERT INTO tag_solution(tag_id, solution_id) VALUES ($1, $2)',
-        [tagId, solution_id]);
-      }
-    };
-
-    // Create tags if not found in database
-    const createTag = async (tag: string) => {
-      const result = await cliant.query('INSERT INTO tags(title) VALUES ($1) RETURNING tag_id',
-      [tag]);
-      console.log(result.rows[0].tag_id)
-      return result.rows[0].tag_id;
-    };
-
+    // disconnect to database
     cliant.release();
     
     // Send succesfully respons
@@ -152,7 +129,7 @@ export const editOneSolution = async (req: Request, res: Response, next: NextFun
     // connect to database
     const cliant = await pool.connect();
 
-    // update problem and solutions
+    // update solution
     const result = await cliant.query('UPDATE solutions SET title = $1, link = $2, source = $3, my_solution = $4, perfect_solution = $5 WHERE solution_id = $6', 
       [
         req.body.problem.title,
@@ -168,44 +145,13 @@ export const editOneSolution = async (req: Request, res: Response, next: NextFun
     await cliant.query('DELETE FROM tag_solution WHERE solution_id = $1', [req.params.solutionId]);
 
     // add new tags
-    findTags(req.body.problem.tags, req.params.solutionId);
+    await findCreateTags(req.body.problem.tags, req.params.solutionId, cliant);
 
     // Return successfuly response
     return res.status(200).json({
       success: true,
       message: "solution updated successfully"
-    })
-
-    // Find ids of tags
-    async function findTags(tags: string[], solution_id: number | string) {
-      for (let i = 0; i < tags.length; i++) {
-        // Find id of tag
-        const result = await cliant.query('SELECT tag_id FROM tags WHERE title = $1',
-        [tags[i]]);
-
-        let tagId;
-
-        // Create tag if not found
-        if (result.rows.length === 0) {
-            tagId = await createTag(tags[i]);
-        } else {
-            tagId = result.rows[0].tag_id
-        }
-
-        // Connect tag with problem
-        await cliant.query('INSERT INTO tag_solution(tag_id, solution_id) VALUES ($1, $2)',
-        [tagId, solution_id]);
-      }
-    };
-
-    // Create tags if not found in database
-    async function createTag(tag: string) {
-      const result = await cliant.query('INSERT INTO tags(title) VALUES ($1) RETURNING tag_id',
-      [tag]);
-      console.log(result.rows[0].tag_id)
-      return result.rows[0].tag_id;
-    };
-
+    });
   } catch (error) {
     console.log(error)
     next(error)
@@ -253,11 +199,12 @@ export const getAllSolutions = async (req: Request, res: Response, next: NextFun
   const result = await cliant.query("SELECT s.solution_id AS _id, json_build_object('title', s.title, 'tags', ARRAY_AGG(t.title), 'link', s.link, 'source', s.source) problem, s.my_solution AS mySolution, s.created_at AS createdAt, json_build_object('isExist', CASE WHEN (perfect_solution IS NULL OR perfect_solution = '') THEN false ELSE true END) perfectSolution FROM solutions s LEFT JOIN tag_solution ts ON s.user_id = $1 AND s.solution_id = ts.solution_id LEFT JOIN tags t ON ts.tag_id = t.tag_id GROUP BY s.solution_id", 
   [user.id]);
   
-  cliant.release()
+  // disconnect to databse
+  cliant.release();
 
   // return successfuly response
   return res.status(200).json({
     success: true,
     result: result.rows
-  })
+  });
 }

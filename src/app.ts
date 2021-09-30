@@ -3,6 +3,7 @@ import express from 'express';
 
 // routes files
 import solutionsRoutes from './routes/solutions';
+import userRoutes from './routes/users'
 
 // middlewares files
 import errorResponse from './middlewares/errorRespose';
@@ -18,6 +19,7 @@ app.use(express.json());
 
 // routes api's
 app.use(solutionsRoutes);
+app.use(userRoutes);
 
 // error handler
 app.use(errorResponse);
