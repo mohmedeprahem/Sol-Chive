@@ -1,5 +1,6 @@
 // packages requirement
 import express from 'express';
+import cookieParser from 'cookie-parser'
 
 // routes files
 import solutionsRoutes from './routes/solutions';
@@ -13,6 +14,9 @@ const app: express.Application = express();
 
 // init dotenv
 require('dotenv').config({path: `${__dirname}/config/.env`});
+
+// init cookieParser
+app.use(cookieParser())
 
 // read body => req.body
 app.use(express.json());

@@ -1,10 +1,24 @@
 import {Pool, PoolClient} from 'pg';
 
-// get user info in database
-export const findUser = async (email: string, cliant: PoolClient, id?: number | string) => {
+// get user info by email in database
+export const findUserByEmail = async (email: string, cliant: PoolClient, id?: number | string) => {
   try {
     // find user
     const result = await cliant.query('SELECT * FROM users WHERE email = $1', [email]);
+    
+    // return user info
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+
+
+// get user info by id in database
+export const findUserById = async (id: string | number, cliant: PoolClient) => {
+  try {
+    // find user
+    const result = await cliant.query('SELECT * FROM users WHERE user_id = $1', [id]);
     
     // return user info
     return result;

@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 import {getGoogleAuthURL, getToken} from '../config/googleAuth';
 
 // util folder
-import { findUser, findOrInsertUser } from '../util/user';
+import { findUserByEmail, findOrInsertUser, findUserById } from '../util/user';
 
 // @disc: get google auth url page
 // @route: POST /api/v1/google-oauth
@@ -19,7 +19,7 @@ export const getGoogleAuthPage = async (req: Request, res: Response, next: NextF
 // @disc: get user info from google api
 // @route: POST /auth/google
 // @access: private(logged in user)
-export const getUserInfo =  async (req: Request, res: Response, next: NextFunction) => {
+export const getUserInfoGoogleAuth =  async (req: Request, res: Response, next: NextFunction) => {
   try {
     const code = req.query.code as string;
 
@@ -76,3 +76,23 @@ export const getUserInfo =  async (req: Request, res: Response, next: NextFuncti
     next(error)
   }
 };
+
+// @disc: get user info from database
+// @route: GET '/api/v1/user'
+// @access: private(logged in user)
+/* export const getUserInfo = async (req: Request, res: Response, next: NextFunction) => {
+  const user = {
+    id: 1
+  }
+  try {
+    const cliant = await pool.connect()
+    // find user
+    const userInfo = await findUserById(user.id, cliant)
+
+    // return error if user not found
+
+    // return user info
+  } catch (error) {
+    next(error)
+  }
+} */

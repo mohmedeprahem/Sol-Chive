@@ -27,7 +27,7 @@ export async function getToken ({
           redirect_uri: redirectUri,
           grant_type: "authorization_code",
         };
-        console.log(1)
+
       
         return axios
         .post(url, queryString.stringify(values), {

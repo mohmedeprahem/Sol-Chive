@@ -203,8 +203,5 @@ export const getAllSolutions = async (req: Request, res: Response, next: NextFun
   cliant.release();
 
   // return successfuly response
-  return res.status(200).json({
-    success: true,
-    result: result.rows
-  });
+  return res.status(200).json(result.rows);
 }
