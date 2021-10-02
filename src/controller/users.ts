@@ -1,9 +1,13 @@
 import axios from 'axios';
 import { pool } from '../config/db';
 import express, {application, Request, Response, NextFunction} from 'express';
+import jwt from 'jsonwebtoken';
 
 // config folder
 import {getGoogleAuthURL, getToken} from '../config/googleAuth';
+
+// util folder
+import { findUser, findOrInsertUser } from '../util/user';
 
 // @disc: get google auth url page
 // @route: POST /api/v1/google-oauth
@@ -44,19 +48,31 @@ export const getUserInfo =  async (req: Request, res: Response, next: NextFuncti
 
     const cliant = await pool.connect();
     
-    // Find user in database
-    const result = await cliant.query('INSERT INTO users(email, name, picture) VALUES ($1, $2, $3)', ["mohmedeprahem2014@gmail.com", "mohamed", ":("]);
-    // Create new user if not sign up before
-
-    await cliant.release();
-
+    // find or Create new user if not sign up before
+    const userInfo = await findOrInsertUser(googleUser.email, googleUser.name, googleUser.picture, cliant);
+    
+    cliant.release();
+    
     // login user
-    // save user info by jwt 
+    // save user info by jwt
+    const token = jwt.sign({ 
+      user: {
+        id: userInfo.rows[0].user_id,
+      } 
+    }, process.env.SECRET_KEY_JWT!, { expiresIn: '90d' });
 
-    //connect jwt with coockies
+    //connect jwt with coockiess
+    res.cookie('user_jwt', token, {
+      maxAge: 1000 * 60 * 60 * 24 * 90,
+      secure: process.env.NODE_ENV === 'production'? true: false
+    });
 
     // return successfully response
+    return res.status(200).json({
+      success: true,
+      message: "user loged in successfully."
+    });
   } catch (error) {
-    console.log(error)
+    next(error)
   }
 };

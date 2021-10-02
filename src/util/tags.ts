@@ -5,7 +5,7 @@ export const createTag = async (tag: string, cliant: PoolClient) => {
     try{
         const result = await cliant.query('INSERT INTO tags(title) VALUES ($1) RETURNING tag_id',
         [tag]);
-        console.log(result.rows[0].tag_id)
+
         return result;
     } catch (error) {
         throw error;
