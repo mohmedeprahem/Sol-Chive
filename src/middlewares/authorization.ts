@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from 'jsonwebtoken';
 
+// interfaces
+import DataStoredInToken from '../interface/DataStoredInToken';
+
 export const userAutho = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // check cookie
@@ -11,9 +14,9 @@ export const userAutho = async (req: Request, res: Response, next: NextFunction)
     })
 
     // check jwt
-    const user = jwt.verify(req.cookies.user_jwt, process.env.SECRET_KEY_JWT!);
-    // req.user = 'user';
-
+    const user = jwt.verify(req.cookies.user_jwt, process.env.SECRET_KEY_JWT!) as DataStoredInToken;
+    req.user = user.user;
+    
     // return success
     next();
   } catch (error) {

@@ -8,6 +8,7 @@ import userRoutes from './routes/users'
 
 // middlewares files
 import errorResponse from './middlewares/errorRespose';
+import { userAutho }  from './middlewares/authorization'
 
 // init express
 const app: express.Application = express();
@@ -22,6 +23,7 @@ app.use(cookieParser())
 app.use(express.json());
 
 // routes api's
+app.use(userAutho)
 app.use(solutionsRoutes);
 app.use(userRoutes);
 
