@@ -10,9 +10,6 @@ import { findCreateTags, createTag, connectTagAndSolution, findTag} from '../uti
 // @disc: add new solution
 // @access: private(logged in user)
 export const createNewSolution = async (req: Request, res: Response, next: NextFunction) => {
-  const user = {
-      id: 1
-  };
   try {  
     // Validate req.body
     const body = req.body;
@@ -36,7 +33,7 @@ export const createNewSolution = async (req: Request, res: Response, next: NextF
 
     // Create new problem by push it to database
     const solution = await cliant.query('INSERT INTO solutions(title, link, source, my_solution, perfect_solution, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING solution_id', 
-    [body.problem.title, body.problem.link, body.problem.source, body.mySolution, body.perfectSolution, user.id]);
+    [body.problem.title, body.problem.link, body.problem.source, body.mySolution, body.perfectSolution, req.user!.id]);
     
     // Save tags of solution
     await findCreateTags(body.problem.tags, solution.rows[0].solution_id, cliant);
@@ -189,15 +186,12 @@ export const deleteOneSolution = async (req: Request, res: Response, next: NextF
 // @disc: list all solutions
 // @access: private(logged in user)
 export const getAllSolutions = async (req: Request, res: Response, next: NextFunction) => {
-  const user = {
-    id: 1
-  };
   // connect to database
   const cliant = await pool.connect();
 
   // get all solutions
   const result = await cliant.query("SELECT s.solution_id AS _id, json_build_object('title', s.title, 'tags', ARRAY_AGG(t.title), 'link', s.link, 'source', s.source) problem, s.my_solution AS mySolution, s.created_at AS createdAt, json_build_object('isExist', CASE WHEN (perfect_solution IS NULL OR perfect_solution = '') THEN false ELSE true END) perfectSolution FROM solutions s LEFT JOIN tag_solution ts ON s.user_id = $1 AND s.solution_id = ts.solution_id LEFT JOIN tags t ON ts.tag_id = t.tag_id GROUP BY s.solution_id", 
-  [user.id]);
+  [req.user!.id]);
   
   // disconnect to databse
   cliant.release();

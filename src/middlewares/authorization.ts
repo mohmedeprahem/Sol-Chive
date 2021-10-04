@@ -4,7 +4,9 @@ import jwt from 'jsonwebtoken';
 // interfaces
 import DataStoredInToken from '../interface/DataStoredInToken';
 
-export const userAutho = async (req: Request, res: Response, next: NextFunction) => {
+// check if user can use api's 
+// only authourdized if he is loged in
+export const userAuthoAfterLogedIn = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // check cookie
     if (!req.cookies || !req.cookies.user_jwt) 
@@ -18,6 +20,25 @@ export const userAutho = async (req: Request, res: Response, next: NextFunction)
     req.user = user.user;
     
     // return success
+    next();
+  } catch (error) {
+    next(error)
+  }
+}
+
+// check if user can use api's
+// only authourdized if he is loged out
+export const userAuthoLogedOut = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // check cookie
+    const cookie = req.cookies.user_jwt;
+    if (cookie){
+      return res.status(403).json({
+        success: false,
+        message: 'user unauthorized'
+      });
+    }
+
     next();
   } catch (error) {
     next(error)

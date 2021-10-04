@@ -1,6 +1,6 @@
 interface DataStoredInToken {
   user: {
-    id: string;
+    id: string | number
   }
 }
 

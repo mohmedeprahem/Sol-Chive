@@ -80,19 +80,42 @@ export const getUserInfoGoogleAuth =  async (req: Request, res: Response, next: 
 // @disc: get user info from database
 // @route: GET '/api/v1/user'
 // @access: private(logged in user)
-/* export const getUserInfo = async (req: Request, res: Response, next: NextFunction) => {
-  const user = {
-    id: 1
-  }
+export const getUserInfo = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const cliant = await pool.connect()
     // find user
-    const userInfo = await findUserById(user.id, cliant)
+    const userInfo = await findUserById(req.user.id, cliant)
 
     // return error if user not found
+    if (userInfo.rows.length === 0) return res.status(400).json({
+      success: false,
+      message: 'user not found'
+    })
 
     // return user info
+    return res.status(200).json({
+      success: true,
+      data: {
+        name: userInfo.rows[0].name,
+        picture: userInfo.rows[0].picture
+      }
+    })
   } catch (error) {
     next(error)
   }
-} */
+}
+
+// @disc: logout
+// @route: DELETE /api/v1/logout
+// @access: private(logged in user)
+export const logout = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // delete cookie
+    res.clearCookie("user_jwt");
+
+    // successfully response
+    return res.status(204)
+  } catch (error) {
+    next(error);
+  }
+}
